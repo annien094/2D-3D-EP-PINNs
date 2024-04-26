@@ -97,7 +97,7 @@ observe_train = observe_x[train_mask]
 
 geomtime = dynamics.geometry_time(dim)
 bc = dynamics.BC_func(dim, geomtime)
-ic_u, ic_v, ic_w = dynamics.IC_func(dim, regime, observe_train, u_train)
+ic_u, ic_v, ic_w = dynamics.IC_fPunc(dim, regime, observe_train, u_train)
 
 observe_u = dde.PointSetBC(observe_train, u_train, component=0)  # component says which component it is
 input_data = [bc, ic_u, ic_v, ic_w, observe_u]
@@ -134,20 +134,6 @@ def output_transform(x, y):
     v_init = 0.99
     w_init = 0.99
 
-    # u_1 = u[0:20*100, :] * tf.tanh(t) + u_init_1
-    # u_2 = u[20*100:, :] * tf.tanh(t) + u_init_2
-    # u_trans = tf.concat([u_1, u_2], axis=0)
-
-    # total_length = tf.shape(u)[0]  # Get the dynamic total length of u
-    # u_trans = tf.Variable(tf.zeros([total_length, 1]), dtype=tf.float32)  # Initialize a tensor of zeros with the correct shape
-
-    # # Calculate u_1 and u_2
-    # u_1 = u[0:20*100] * tf.tanh(t) + u_init_1
-    # u_2 = u[20*100:] * tf.tanh(t) + u_init_2
-
-    # # Assign the values to the initialized tensor
-    # u_trans[0:20*100].assign(u_1)
-    # u_trans[20*100:].assign(u_2)
     u_trans = u * tf.tanh(t) + tf.cast(tf.math.less(x_x, (20+1)*0.3),tf.float32) * u_a
     # Maybe try removing tf.math? and jsut use (x < (20+1)*0.3)
 
@@ -187,7 +173,7 @@ while initial_loss>MAX_LOSS or np.isnan(initial_loss).any() or np.isinf(initial_
 
 print("initialisation phase finished")
 
-out_path = './saved_model'+args.transform+str(seed)+'/'
+out_path = './results_'+model_folder_name+'/'
 if inverse_string:
     variables_file = inverse_string + ".dat"
     variable = dde.callbacks.VariableValue(params, period=1000, filename=variables_file)
@@ -206,11 +192,14 @@ plt.semilogy(losshistory.steps, loss_test, label="Test loss", linewidth=2)
 plt.title("Loss history")
 plt.xlabel("# Steps")
 plt.legend()
-plt.savefig(model_folder_name + "Loss history")
+plt.savefig(out_path + "Loss history")
 
 print("calculating RMSE")
 ## restore to the best state rather than final
-model.restore(out_path + 'model.ckpt-' + str(train_state.best_step), verbose=1)
+try:
+    model.restore(out_path + 'model.ckpt-' + str(train_state.best_step+1), verbose=1)
+except FileNotFoundError:
+    model.restore(out_path + 'model.ckpt-' + str(train_state.best_step), verbose=1)
 
 ## Compute rMSE for testing data & all (training + testing)
 u_pred_test = model.predict(observe_test)[:,0:1]  # add predict V and W and then plot them (in forward mode)
@@ -223,21 +212,21 @@ all_err2 = np.concatenate((test_err2, train_err2))
 rmse_u_all = np.sqrt( all_err2.mean() )
 
 print('--------------------------')
-print('V rMSE for test data:', rmse_u_test)
-print('V rMSE for train data:', rmse_u_train)
-print('V rMSE for all data:', rmse_u_all)
+print('u RMSE for test data:', rmse_u_test)
+print('u RMSE for train data:', rmse_u_train)
+print('u RMSE for all data:', rmse_u_all)
 print('--------------------------')
 
 data_list = [observe_x, observe_train, u_train, u, observe_test, u_test]
 # if True and dim == 1:
 #         plot_1D(data_list, dynamics, model, model_folder_name)
 # elif True and dim == 2:
-plot_2D(data_list, dynamics, model, animation, model_folder_name)
+plot_2D(data_list, dynamics, model, animation, out_path)
 
 v_pred_test = model.predict(observe_test)[:,1:2]
 w_pred_test = model.predict(observe_test)[:,2:3]
 v_pred_train = model.predict(observe_train)[:,1:2]
 w_pred_train = model.predict(observe_train)[:,2:3]
 
-scipy.io.savemat(out_path + model_folder_name + "uvw_test_estimates.mat", mdict={'u_pred_test': u_pred_test, 'v_pred_test': v_pred_test, 'w_pred_test': w_pred_test, 'observe_test': observe_test})
-scipy.io.savemat(out_path + model_folder_name + "uvw_train_estimates.mat", mdict={'u_pred_train': u_pred_train, 'v_pred_train': v_pred_train, 'w_pred_train': w_pred_train, 'observe_train': observe_train})
+scipy.io.savemat(out_path + "uvw_test_estimates.mat", mdict={'u_pred_test': u_pred_test, 'v_pred_test': v_pred_test, 'w_pred_test': w_pred_test, 'observe_test': observe_test})
+scipy.io.savemat(out_path + "uvw_train_estimates.mat", mdict={'u_pred_train': u_pred_train, 'v_pred_train': v_pred_train, 'w_pred_train': w_pred_train, 'observe_train': observe_train})
