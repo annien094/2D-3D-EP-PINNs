@@ -37,7 +37,10 @@ stimgeo=false(X,Y);
 stimgeo(1:5,:)=true; % indices of cells where external stimulus is felt
 
 crossfgeo=false(X,Y); % extra stimulus to generate spiral wave
-crossfgeo(37:38,1:floor(X/2)-10)=true; % bar like extra stimulus
+crossfgeo(37:38,1:floor(X/2)+40)=true; % bar like extra stimulus
+
+% Marta
+% crossfgeo(37:38,1:floor(X/2)+20)=true; % bar like extra stimulus
 tCF=77; % time (AU) at which the extra stimulus is applied
 
 % Model parameters
@@ -50,8 +53,8 @@ gathert=round(1/dt); % number of iterations at which V is outputted
 tstar=1; % time, AU, at which the data starts being saved (because the 
 % spiral wave has formed already)
 stimdur=1; % AU, duration of stimulus
-Ia=0.5; % AU, value for Istim when cell is stimulated
-Ia_2=1.0;
+% Ia=0.5; % AU, value for Istim when cell is stimulated
+% Ia_2=0.5;
 
 V(1:X,1:Y)=0; % initial V
 W(1:X,1:Y)=0.01; % initial W
@@ -63,15 +66,18 @@ ind=0; %iterations counter
 
 y=zeros(2,size(V,1),size(V,2));
 
+% probability of firing
+p=0; %1e-4;
+Va=1;
+
 % for loop for explicit RK4 finite differences simulation
 for t=dt:dt:tend % for every timestep
     ind=ind+1; % count interations
         % stimulate at every BCL time interval for ncyc times
         if t<=stimdur
-            Istim=Ia*stimgeo; % stimulating current
+            V(stimgeo)=Va; % stimulating current
         elseif t>=tCF&&t<=tCF+stimdur
-            Istim=Ia_2*crossfgeo;
-            V(crossfgeo)=Ia_2;
+            V(crossfgeo)=Va;
         else
             Istim=zeros(X,Y); % stimulating current
         end
@@ -79,10 +85,10 @@ for t=dt:dt:tend % for every timestep
         % 4-step explicit Runga-Kutta implementation
         y(1,:,:)=V;
         y(2,:,:)=W;
-        k1=AlPan(y,Istim);
-        k2=AlPan(y+dt/2.*k1,Istim);
-        k3=AlPan(y+dt/2.*k2,Istim);
-        k4=AlPan(y+dt.*k3,Istim);
+        k1=AlPan(y);
+        k2=AlPan(y+dt/2.*k1);
+        k3=AlPan(y+dt/2.*k2);
+        k4=AlPan(y+dt.*k3);
         y=y+dt/6.*(k1+2*k2+2*k3+k4);
         V=squeeze(y(1,:,:));
         W=squeeze(y(2,:,:));
@@ -98,7 +104,11 @@ for t=dt:dt:tend % for every timestep
         end
         
         % At every gathert iterations, save V value for plotting
+        % and have a probability p of firing
         if t>=tstar&&mod(ind,gathert)==0
+            pp=rand(ncells+2);
+            V(pp<p)=1;
+
             % save values
             Vsav(:,:,round(ind/gathert))=V(2:end-1,2:end-1)';
             Wsav(:,:,round(ind/gathert))=W(2:end-1,2:end-1)';
@@ -144,7 +154,7 @@ for t=dt:dt:tend % for every timestep
 end
 close all
 
-function dydt = AlPan(y,Istim)
+function dydt = AlPan(y)
     global a k mu1 mu2 epsi b h D
     
     V=squeeze(y(1,:,:));
@@ -156,7 +166,7 @@ function dydt = AlPan(y,Istim)
     dV=4*D.*del2(V,h)+Dx.*gx+Dy.*gy; % extra terms to account for heterogeneous D
 %     dV=D.*L_9_point(V,h)+Dx.*gx+Dy.*gy; % Laplacian with 9-point stencil
     dWdt=(epsi + mu1.*W./(mu2+V)).*(-W-k.*V.*(V-b-1));
-    dVdt=(-k.*V.*(V-a).*(V-1)-W.*V)+dV+Istim;
+    dVdt=(-k.*V.*(V-a).*(V-1)-W.*V)+dV;
     dydt(1,:,:)=dVdt;
     dydt(2,:,:)=dWdt;
 end
@@ -188,8 +198,8 @@ function setglobs(ncells,Dfac)
     X = ncells + 2; % to allow boundary conditions implementation
     fibloc=[floor(X/3) ceil(X/3+X/5)]; % location of (square) heterogeneity
     
-    D0 = 0.24;%0.1;%0.05;  % mm^2/UA, diffusion coefficient (for monodomain equation)
-%     D0=1.0;
+    D0 = 0.15;%0.05;  % mm^2/UA, diffusion coefficient (for monodomain equation)
+%     D0=1.0; 0.24;
     D = D0*ones(X,X);
     D(fibloc(1):fibloc(2),fibloc(1):fibloc(2))=D0*Dfac;
 end
