@@ -4,3 +4,5 @@
 *.index
 *.meta
 .DS_Store
+*.h
+*.pyc
