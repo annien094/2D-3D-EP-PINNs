@@ -97,7 +97,7 @@ observe_train = observe_x[train_mask]
 
 geomtime = dynamics.geometry_time(dim)
 bc = dynamics.BC_func(dim, geomtime)
-ic_u, ic_v, ic_w = dynamics.IC_fPunc(dim, regime, observe_train, u_train)
+ic_u, ic_v, ic_w = dynamics.IC_func(dim, regime, observe_train, u_train)
 
 observe_u = dde.PointSetBC(observe_train, u_train, component=0)  # component says which component it is
 input_data = [bc, ic_u, ic_v, ic_w, observe_u]
@@ -183,6 +183,10 @@ else:
     checker = dde.callbacks.ModelCheckpoint("model.ckpt", save_better_only=True, period=1000)
     losshistory, train_state = model.train(epochs=epochs, model_save_path = out_path, display_every=1000, callbacks=[checker])
 
+if args.regime == 3: # see if this helps with convergence in spiral breakup
+    model.compile("L-BFGS-B")
+    losshistory, train_state = model.train(model_save_path = out_path+ "model.ckpt", display_every=1000, callbacks=[checker])
+
 loss_train = np.sum(losshistory.loss_train, axis=1)
 loss_test = np.sum(losshistory.loss_test, axis=1)
 
@@ -196,10 +200,11 @@ plt.savefig(out_path + "Loss history")
 
 print("calculating RMSE")
 ## restore to the best state rather than final
-try:
-    model.restore(out_path + 'model.ckpt-' + str(train_state.best_step+1), verbose=1)
-except FileNotFoundError:
+## restore to the best state rather than final
+if train_state.best_step == train_state.step:
     model.restore(out_path + 'model.ckpt-' + str(train_state.best_step), verbose=1)
+else:
+    model.restore(out_path + 'model.ckpt-' + str(train_state.best_step+1), verbose=1)
 
 ## Compute rMSE for testing data & all (training + testing)
 u_pred_test = model.predict(observe_test)[:,0:1]  # add predict V and W and then plot them (in forward mode)
@@ -221,7 +226,7 @@ data_list = [observe_x, observe_train, u_train, u, observe_test, u_test]
 # if True and dim == 1:
 #         plot_1D(data_list, dynamics, model, model_folder_name)
 # elif True and dim == 2:
-plot_2D(data_list, dynamics, model, animation, out_path)
+plot_2D(data_list, dynamics, model, animation, model_folder_name)
 
 v_pred_test = model.predict(observe_test)[:,1:2]
 w_pred_test = model.predict(observe_test)[:,2:3]
