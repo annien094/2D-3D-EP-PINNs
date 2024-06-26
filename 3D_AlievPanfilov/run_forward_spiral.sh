@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l select=1:ncpus=4:mem=48gb:ngpus=2:gpu_type=RTX6000
+#PBS -l select=1:ncpus=4:mem=24gb:ngpus=1:gpu_type=RTX6000
 #PBS -l walltime=24:00:00
 #PBS -m ae
 #PBS -N 3D_spiral_sphere
 #PBS -o ./
 #PBS -e ./
-
+#PBS -J 1-5
 
 #Modules!
 #module load anaconda3/personal
@@ -24,6 +24,6 @@ source activate /rds/general/user/ag619/home/anaconda3/envs/PINNs_gpu
 
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
-python main.py -d 3 -f "spiral_sphere_new.mat" -m "spiral_sphere" -p
+python main.py -d 3 -f "spiral_sphere.mat" -m "spiral_sphere_run${PBS_ARRAY_INDEX}" -p -rg '2'
 conda deactivate
 
