@@ -245,27 +245,27 @@ class system_dynamics():
         eq_b = dw_dt -  (self.epsilon + (self.mu_1*W)/(self.mu_2+V))*(-W -self.k*V*(V-self.b-1))
         return [eq_a, eq_b] 
  
-    def IC_func(self,observe_train, v_train, regime):
+    def IC_func(self,observe_x, observe_train, regime):
             if regime == '1':
                 ic_data = scipy.io.loadmat("IC_planar_sphere.mat")
 
             elif regime == '2':
                 ic_data = scipy.io.loadmat("IC_spiral_sphere.mat")
             
-            # observe_init = observe_x[observe_x[:,3] == 1]
-            # print("len of observe_init", len(observe_init))
-            # print("first 5 rows of observe_init", observe_init[0:5])            
-            # v_init = ic_data["v_init"].reshape(-1,1)
-            # w_init = ic_data["w_init"].reshape(-1,1)
-            # ic_v = dde.PointSetBC(observe_init, v_init, component=0)
-            # ic_w = dde.PointSetBC(observe_init, w_init, component=1)
+            observe_init = observe_x[observe_x[:,3] == 1]
+            print("len of observe_init", len(observe_init))
+            print("first 5 rows of observe_init", observe_init[0:5])            
+            v_init = ic_data["v_init"].reshape(-1,1)
+            w_init = ic_data["w_init"].reshape(-1,1)
+            ic_v = dde.PointSetBC(observe_init, v_init, component=0)
+            ic_w = dde.PointSetBC(observe_init, w_init, component=1)
             
-            T_ic = observe_train[:,-1].reshape(-1,1)
-            idx_init = np.where(np.isclose(T_ic,1))[0]
-            v_init = v_train[idx_init]
-            observe_init = observe_train[idx_init]
-            return dde.PointSetBC(observe_init,v_init,component=0)
-            # return ic_v, ic_w 
+            # T_ic = observe_train[:,-1].reshape(-1,1)
+            # idx_init = np.where(np.isclose(T_ic,1))[0]
+            # v_init = v_train[idx_init]
+            # observe_init = observe_train[idx_init]
+            # return dde.PointSetBC(observe_init,v_init,component=0)
+            return ic_v, ic_w 
         
     def BC_func(self,dim, geomtime):
         if dim == 1:
