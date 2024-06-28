@@ -55,11 +55,13 @@ def main(args):
     ## Define Boundary Conditions
     bc = dynamics.BC_func(args.dim, geomtime)
     ## Define Initial Conditions
-    ic_v, ic_w = dynamics.IC_func(observe_train, v_train, args.regime)
+    ic_v, ic_w = dynamics.IC_func(observe_x, observe_train, args.regime)
+    # ic = dynamics.IC_func(observe_x, observe_train, args.regime)
     
     ## Model observed data
     observe_v = dde.PointSetBC(observe_train, v_train, component=0)
-    input_data = [bc, ic_v, ic_w, observe_v]
+    # input_data = [bc, ic_v, ic_w, observe_v]
+    input_data = [bc, ic, observe_v]
     if args.w_input: ## If W required as an input
         observe_w = dde.PointSetBC(observe_train, w_train, component=1)
         input_data = [bc, ic_v, ic_w, observe_v, observe_w]
@@ -86,7 +88,8 @@ def main(args):
 
     # Plot individual loss term history
     plt.figure()
-    loss_label = ['eq_v', 'eq_w', 'IC_v', 'IC_w', 'BC', 'data']
+    # loss_label = ['eq_v', 'eq_w', 'IC_v', 'IC_w', 'BC', 'data']
+    loss_label = ['eq_v', 'eq_w', 'IC_v', 'BC', 'data']
     plt.semilogy(losshistory.steps, losshistory.loss_train, label=loss_label, linewidth=2)
     plt.title("Individual loss history " +args.model_folder_name)
     plt.xlabel("Steps")
