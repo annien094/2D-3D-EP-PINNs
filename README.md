@@ -12,3 +12,6 @@ We also demonstrate that PINNs can be used to estimate EP parameters in cardiac 
 The repository is structured by the different geometry/electrophysiological models. In each folder, run the `main*` files. There are also auxillirary files `utils.py` and data files that are needed for the training.
 
 The numerical simulation code (FEM or FD) to generate sythetic data is in Data_generation.
+
+### Relevant work
+This work mainly built on top of the work of Herrero Martin _et al_. (2022) [EP-PINNs: Cardiac Electrophysiology Characterisation Using Physics-Informed Neural Networks](https://www.frontiersin.org/journals/cardiovascular-medicine/articles/10.3389/fcvm.2021.768419/full), [(GitHub repository)](https://github.com/martavarela/EP-PINNs) and Chiu _et al_. (2024) [Characterisation of Anti-Arrhythmic Drug Effects on Cardiac Electrophysiology using Physics-Informed Neural Networks](https://arxiv.org/abs/2403.08439), [GitHub repository](https://github.com/annien094/EP-PINNs-for-drugs).
