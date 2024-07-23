@@ -9,6 +9,6 @@ We also demonstrate that PINNs can be used to estimate EP parameters in cardiac 
 
 
 ## Running the code
-The repository is structured by the different geometry/electrophysiological models. To run the training, run the [`main.py`] files. In each folder, there are also auxillirary files [`utils.py`] and
+The repository is structured by the different geometry/electrophysiological models. In each folder, run the `main*` files. There are also auxillirary files `utils.py` and data files that are needed for the training.
 
 The numerical simulation code (FEM or FD) to generate sythetic data is in Data_generation.
