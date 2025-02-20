@@ -1,6 +1,6 @@
 # Physics-Informed Neural Networks can accurately model cardiac electrophysiology in 3D geometries and fibrillatory conditions (STACOM 2024)
 Accepted to be published in the Statistical Atlases and Computational Modeling of the Heart Workshop 2024, a MICCAI satellite workshop.
-This is the repository holding all code used in the article.
+This is the repository holding all code used in the article. ArXiv paper can be found here: https://arxiv.org/pdf/2409.12712.
 
 ### Abstract
 Physics-Informed Neural Networks (PINNs) are fast becoming an important tool to solve differential equations rapidly and accurately, and to identify the systems parameters that best agree with a given set of measurements. PINNs have been used for cardiac electrophysiology (EP), but only in simple 1D and 2D geometries and for sinus rhythm or single rotor dynamics. Here, we demonstrate how PINNs can be used to accurately reconstruct the propagation of cardiac action potential in more complex geometries and dynamical regimes, including 3D spherical geometries and spiral break-up conditions that model cardiac fibrillation.
